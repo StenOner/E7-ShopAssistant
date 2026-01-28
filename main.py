@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 
+import os
+os.environ["DISABLE_MODEL_SOURCE_CHECK"] = "True"
+
 IMAGE_BASE_PATH: str = 'images/'
 DSIZE: tuple = (1280, 720)
 CURRENT_GOLD: int = 0
@@ -14,7 +17,8 @@ def detect_currencies(img_name: str):
     cropped = resized[:60,700:960]
     ocr = PaddleOCR(
         use_doc_orientation_classify=False,
-        use_doc_unwarping=False)
+        use_doc_unwarping=False,
+        )
 
     result = ocr.predict(input=cropped)
     if not result or not result[0]:
@@ -86,7 +90,7 @@ def main():
         # "test2_success_achieved.jpg",
     ]
 
-    result = [detect_shop_items(image) for image in images]
+    # result = [detect_shop_items(image) for image in images]
     [detect_currencies(image) for image in images]
 
 if __name__ == "__main__":
