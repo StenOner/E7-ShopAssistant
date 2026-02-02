@@ -27,11 +27,8 @@ def detect_currencies(img_name: str):
 def detect_refresh_button(img_name: str):
     img = cv2.imread(f'{IMAGE_BASE_PATH}{img_name}')
     resized = cv2.resize(src=img, dsize=DSIZE, interpolation=cv2.INTER_AREA)
-
     hsv = cv2.cvtColor(src=resized, code=cv2.COLOR_BGR2HSV)
 
-    # Define range for green color
-    # Green typically has H: 40-80, but we'll use a wider range
     lower_green = np.array([35, 40, 40])
     upper_green = np.array([85, 255, 255])
     green_mask = cv2.inRange(src=hsv, lowerb=lower_green, upperb=upper_green)
@@ -42,14 +39,13 @@ def detect_refresh_button(img_name: str):
 
     contours, _ = cv2.findContours(image=green_mask, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
-    detected_buttons = []
+    refresh_buttons = []
     for contour in contours:
         area = cv2.contourArea(contour)
         if area < 500:
             continue
         
         x, y, w, h = cv2.boundingRect(contour)
-
         aspect_ratio = w / float(h)
         if not (1.5 < aspect_ratio < 6):
             continue
@@ -61,7 +57,7 @@ def detect_refresh_button(img_name: str):
         if blue_percentage <= 1.0:
             continue
 
-        detected_buttons.append({
+        refresh_buttons.append({
             'box': (x, y, w, h),
             'blue_percentage': blue_percentage,
             'area': area,
@@ -73,12 +69,11 @@ def detect_refresh_button(img_name: str):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return detected_buttons
+    return refresh_buttons
     
 def detect_shop_items(img_name: str):
     img = cv2.imread(f'{IMAGE_BASE_PATH}{img_name}')
     resized = cv2.resize(src=img, dsize=DSIZE, interpolation=cv2.INTER_AREA)
-    
     hsv = cv2.cvtColor(src=resized, code=cv2.COLOR_BGR2HSV)
     
     lower_green = np.array([35, 40, 40])
@@ -105,17 +100,18 @@ def detect_shop_items(img_name: str):
         if not (1.5 < aspect_ratio < 4.0) or blue_pixels != 0:
             continue
         
-        buy_buttons.append((x, y, w, h))
-    
-    print(f'Found {len(buy_buttons)} items')
-    
-    for (x, y, w, h) in buy_buttons:
-        cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        
         item_x = max(0, x - 650)
         item_y = max(0, y - 60)
         item_w = x - item_x + w
         item_h = h + 80
+
+        buy_buttons.append({
+            'box': (x, y, w, h),
+            'box_container': (item_x, item_y, item_w, item_h),
+            'area': area,
+        })
+
+        cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.rectangle(resized, (item_x, item_y), (item_x + item_w, item_y + item_h), (255, 0, 0), 2)
     
     cv2.imshow('Detected Shop Items', resized)
