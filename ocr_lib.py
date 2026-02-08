@@ -1,14 +1,12 @@
-import cv2
+from cv2_lib import cv2, DSIZE
+import numpy as np
 
-IMAGE_BASE_PATH: str = 'images/'
-DSIZE: tuple = (1280, 720)
 CURRENT_GOLD: int = 0
 CURRENT_SKYSTONES: int = 0
 
-def detect_currencies(img_name: str):
+def detect_currencies(img: np.ndarray) -> dict[str, int]:
     from paddleocr import PaddleOCR
     
-    img = cv2.imread(f'{IMAGE_BASE_PATH}{img_name}')
     resized = cv2.resize(src=img, dsize=DSIZE, interpolation=cv2.INTER_AREA)
     cropped = resized[:60,700:960]
     ocr = PaddleOCR(
@@ -21,4 +19,9 @@ def detect_currencies(img_name: str):
         raise Exception('Could not find currencies')
     
     global CURRENT_GOLD, CURRENT_SKYSTONES
-    [CURRENT_GOLD, CURRENT_SKYSTONES] = [int(currency.replace(',','')) for currency in result[0]['rec_texts']]
+    [CURRENT_GOLD, CURRENT_SKYSTONES] = [int(currency.replace(',','')) for currency in result[0]['rec_texts']]    
+    
+    return {'gold': CURRENT_GOLD, 'skystones': CURRENT_SKYSTONES}
+
+if __name__ == '__main__':
+    pass

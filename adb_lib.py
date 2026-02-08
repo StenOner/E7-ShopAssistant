@@ -4,11 +4,11 @@ import subprocess
 import shutil
 import socket
 
-BASE_SCREENSHOT_PATH: str = 'screenshots'
 SELECTED_DEVICE: Device = None
 DEFAULT_HOST: str = '127.0.0.1'
 DEFAULT_ADB_PORT: int = 5037
 DEFAULT_BS_PORT: int = 5555
+DEVICE_DIMENSIONS: tuple[int, int] = (1920, 1080)
 
 def is_adb_running(host: str = DEFAULT_HOST, port: int = DEFAULT_ADB_PORT) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -31,6 +31,8 @@ def select_device_bluestacks():
     
     global SELECTED_DEVICE
     SELECTED_DEVICE = client.device(f'{DEFAULT_HOST}:{DEFAULT_BS_PORT}')
+    
+    set_device_dimensions()
 
 def select_device():
     ensure_adb()
@@ -52,16 +54,26 @@ def select_device():
             global SELECTED_DEVICE
             SELECTED_DEVICE = devices[device_index-1]
             invalid = False
+            
+            set_device_dimensions()
         except:
             print('Invalid index or value.')
             
 def device_not_selected(func):
     def wrapper(*args, **kwargs):
         if not SELECTED_DEVICE:
-            print('No device selected.')    
-            return
+            select_device_bluestacks()
         return func(*args, **kwargs)
     return wrapper
+
+@device_not_selected
+def set_device_dimensions() -> None:
+    output = SELECTED_DEVICE.shell('wm size')
+    dimensions_str = output.strip().split(':')[-1].strip()
+    width, height = map(int, dimensions_str.split('x'))
+    
+    global DEVICE_DIMENSIONS
+    DEVICE_DIMENSIONS = (width, height)
 
 @device_not_selected
 def tap(coordinates: tuple = (0,0)):
@@ -80,20 +92,24 @@ def type(text: str):
     SELECTED_DEVICE.shell(cmd=f'input text {text}')
 
 @device_not_selected
-def take_screenshot() -> str:
+def take_screenshot(base_url: str = 'temp') -> str:
     screenshot_name = generate_random_name()
-    with open(f'{BASE_SCREENSHOT_PATH}/{screenshot_name}', 'wb') as f:
+    with open(f'{base_url}/{screenshot_name}', 'wb') as f:
         f.write(SELECTED_DEVICE.screencap())
 
     return screenshot_name
 
-def generate_random_name() -> str:
+def generate_random_name(extension: str = 'png') -> str:
     from uuid import uuid4
+    
     file_name: str = str(uuid4())
 
-    return f'{file_name}.png'
+    return f'{file_name}.{extension}'
+
+def delete_screenshot(path: str):
+    import os
+    
+    os.remove(path)
 
 if __name__ == '__main__':
-    # select_device()
-    select_device_bluestacks()
-    swipe((470,1000), (470,500), 200)
+    pass
