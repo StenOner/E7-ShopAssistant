@@ -74,17 +74,19 @@ def main():
         print('\n'+'='*80)
         print('Detected Items:', detections)
         print('='*80)
-        adb_lib.delete_screenshot(f'{BASE_SCREENSHOT_PATH}/{screenshot}')
+        # adb_lib.delete_screenshot(f'{BASE_SCREENSHOT_PATH}/{screenshot}')
+        
         if should_swipe_down:
             should_swipe_down = not should_swipe_down
             swipe_shop_items_to_the_bottom(adb_lib.DEVICE_DIMENSIONS, 500)
             sleep(0.5)
-        else:
-            should_swipe_down = not should_swipe_down
-            press_center_of_button(refresh_button)
-            sleep(0.5)
-            press_confirm_refresh_button(adb_lib.DEVICE_DIMENSIONS)
-            sleep(1.5)
+            continue
+        
+        should_swipe_down = not should_swipe_down
+        press_center_of_button(refresh_button)
+        sleep(0.5)
+        press_confirm_refresh_button(adb_lib.DEVICE_DIMENSIONS)
+        sleep(3)
 
 if __name__ == '__main__':
     main()

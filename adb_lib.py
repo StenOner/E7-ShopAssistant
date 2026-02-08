@@ -100,9 +100,9 @@ def take_screenshot(base_url: str = 'temp') -> str:
     return screenshot_name
 
 def generate_random_name(extension: str = 'png') -> str:
-    from uuid import uuid4
+    from datetime import datetime
     
-    file_name: str = str(uuid4())
+    file_name: str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
 
     return f'{file_name}.{extension}'
 
