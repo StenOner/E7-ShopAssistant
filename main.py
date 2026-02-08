@@ -43,25 +43,13 @@ def swipe_shop_items_to_the_bottom(screen_dimensions: tuple[int, int], duration_
         (end_x, end_y),
         duration_ms
     )
-    
-def swipe_shop_items_to_the_top(screen_dimensions: tuple[int, int], duration_ms: int = 1_000):
-    screen_x, screen_y = screen_dimensions
-    start_x = int(screen_x * 0.7)
-    start_y = int(screen_y * 0.3)
-    end_x = start_x
-    end_y = int(screen_y * 0.9)
-    adb_lib.swipe(
-        (start_x, start_y),
-        (end_x, end_y),
-        duration_ms
-    )
 
 def main():
     detector = ShopItemDetector()
-    screenshot = adb_lib.take_screenshot(base_url=BASE_SCREENSHOT_PATH)
+    initial = adb_lib.take_screenshot(base_url=BASE_SCREENSHOT_PATH)
     # currencies = get_currencies_from_screenshot(screenshot)
-    refresh_button = detector.detect_refresh_button(cv2.imread(f'{BASE_SCREENSHOT_PATH}/{screenshot}'))[0]
-    adb_lib.delete_screenshot(f'{BASE_SCREENSHOT_PATH}/{screenshot}')
+    refresh_button = detector.detect_refresh_button(cv2.imread(f'{BASE_SCREENSHOT_PATH}/{initial}'))[0]
+    adb_lib.delete_screenshot(f'{BASE_SCREENSHOT_PATH}/{initial}')
     print('\n'+'='*80)
     print('Refresh Button:', refresh_button)
     print('='*80)
@@ -90,6 +78,7 @@ def main():
         if should_swipe_down:
             should_swipe_down = not should_swipe_down
             swipe_shop_items_to_the_bottom(adb_lib.DEVICE_DIMENSIONS, 500)
+            sleep(0.5)
         else:
             should_swipe_down = not should_swipe_down
             press_center_of_button(refresh_button)

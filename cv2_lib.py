@@ -100,6 +100,17 @@ class ShopItemDetector:
                 
         matches = self._non_max_suppression(all_matches, overlap_threshold=0.5)
         
+        for match in matches:
+            x, y, w, h, confidence = match
+            img_region = img[int(y):int(y+h), int(x):int(x+w)]
+            hsv_img = cv2.cvtColor(src=img_region, code=cv2.COLOR_BGR2HSV)
+            green_mask = cv2.inRange(src=hsv_img, lowerb=self.green_lower, upperb=self.green_upper)
+            green_pixels = cv2.countNonZero(green_mask)
+            green_percentage = (green_pixels / (w * h)) * 100
+            
+            if green_percentage > 3.0:
+                matches.remove(match)        
+        
         #testing: draw matches
         # for match in matches:
         #     x, y, w, h, _ = match
@@ -150,10 +161,20 @@ class ShopItemDetector:
                 
                 matched_items.append({
                     'item_bbox': (match_x, match_y, match_w, match_h),
-                    'buy_button_bbox': (btn_x, btn_y, btn_w, btn_h)
+                    'buy_button_bbox': (btn_x, btn_y, btn_w, btn_h),
+                    'confidence': confidence
                 })
+        
+        unique_detections = []
+        seen_buttons = set()
+        
+        for match in sorted(matched_items, key=lambda x: x['confidence'], reverse=True):
+            btn_key = match['buy_button_bbox'][:2]
+            if btn_key not in seen_buttons:
+                seen_buttons.add(btn_key)
+                unique_detections.append(match)
                     
-        return matched_items
+        return unique_detections
     
     def find_green_buy_buttons(self, image: np.ndarray) -> list[tuple[int, int, int, int]]:
         """
@@ -232,4 +253,4 @@ class ShopItemDetector:
 
 if __name__ == '__main__':
     shop = ShopItemDetector()
-    match = shop.match_template(cv2.imread('images/575b4c69-edc5-468b-bdd7-3213e02817fb.png'), [shop.templates['tc'], shop.templates['tm']])
+    match = shop.match_template(cv2.imread('images/a88cb4f6-ed10-47d5-9a3f-b4b50137db58.png'), [shop.templates['tc'], shop.templates['tm']])
