@@ -123,7 +123,7 @@ class ShopItemDetector:
         
         return matches
     
-    def match_with_green_button(self, detections: list[tuple[int, int, int, int, float]], buy_buttons: list[tuple[int, int, int, int]]) -> dict[str, list[tuple[int, int, int, int]]]:
+    def match_with_green_button(self, detections: list[tuple[int, int, int, int, float]], buy_buttons: list[tuple[int, int, int, int]]) -> dict[str, list[tuple[int, int, int, int, float]]]:
         """
         Match detected items with nearby green Buy buttons.
         
@@ -175,6 +175,24 @@ class ShopItemDetector:
                 unique_detections.append(match)
                     
         return unique_detections
+    
+    def estimate_green_button_position(self, detections: list[tuple[int, int, int, int, float]], screen_size: tuple[int, int]) -> dict[str, list[tuple[int, int, int, int]]]:
+        matched_items = []
+        screen_size_x, _ = screen_size
+        for x, y, w, h, _ in detections:
+            match_x = int(x)
+            match_y = int(y)
+            match_w = int(w)
+            match_h = int(h)
+            
+            button = (screen_size_x-200, match_y+60, 200, 60)
+                
+            matched_items.append({
+                'item_bbox': (match_x, match_y, match_w, match_h),
+                'buy_button_bbox': button,
+            })
+                    
+        return matched_items
     
     def find_green_buy_buttons(self, image: np.ndarray) -> list[tuple[int, int, int, int]]:
         """
